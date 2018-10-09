@@ -199,15 +199,18 @@ def sample(dim, numSamples, ratio):
         print("Sampling Latin-Hypercube array space (%s)" % (sampleNum))
         tries = 0
         while True:
-            randUniform = convertToRandomCDF(dim, history, h)
+            randUniform = np.array(convertToRandomCDF(dim, history, h))
             #randStandardNorm = CDFtoNorm(randUniform)
             tries += 1
 
-            wtf(randUniform, 'utemp.csv')
+            #wtf(randUniform, 'utemp.csv')
             #wtf(randStandardNorm, 'ntemp.csv')
 
-            cols = range(0, dim)
-            randUniform = np.genfromtxt('utemp.csv', delimiter=',', usecols=cols)
+            print(randUniform)
+
+
+            #cols = range(0, dim)
+            #randUniform = np.genfromtxt('utemp.csv', delimiter=',', usecols=cols)
             #randStandardNorm = np.genfromtxt('ntemp.csv', delimiter=',', usecols=cols)
 
             uninnd = nnd(randUniform)
@@ -224,7 +227,7 @@ def sample(dim, numSamples, ratio):
         if sampleMin > ratio * minRadius: #and sampleMinNorm > ratio * minRadius:
             break
 
-    os.remove(os.getcwd() + '/utemp.csv')
+    #os.remove(os.getcwd() + '/utemp.csv')
 #    os.remove(os.getcwd() + '/ntemp.csv')
 
     return randUniform#, randStandardNorm
