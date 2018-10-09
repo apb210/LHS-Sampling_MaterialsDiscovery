@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 def main():
-    inputfile = "C:\\Users\\Apratim\\Desktop\\citrine-challenge\\example.txt" #sys.argv[1]
+    inputfile = "C:\\Users\\usaaxb85\\Desktop\\citrine-challenge\\mixture.txt" #sys.argv[1]
 
 
 

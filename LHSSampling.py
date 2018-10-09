@@ -34,7 +34,8 @@ import matplotlib.pyplot as plt
 import random, sys, os
 from copy import deepcopy
 import scipy.stats as st
-
+# np.random.seed(5)
+# random.seed(5)
 
 def getIndex(val, h, minVal=0.0, maxVal=1.0):
     minIndex = int(float(minVal / h))
@@ -59,9 +60,9 @@ def getFloatVal(index, h, minVal=0.0, maxVal=1.0):
 
 
 def initializeSpace(dim, numStrata, minVal=0.0, maxVal=1.0, debug='False'):
-    dimList = []
-    for i in range(0, dim):
-        dimList.append(numStrata)
+    # dimList = []
+    # for i in range(0, dim):
+    #     dimList.append(numStrata)
 
     h = float((maxVal - minVal) / (numStrata))
 
@@ -90,6 +91,7 @@ def getLimitedDraw(dim, eligibleIndices, history):
         for i in range(0, dim):
             indices[i] = [x for x in indices[i] if x != ent[i]]
 
+
     point = []
     for i in range(0, dim):
         point.append(random.choice(indices[i]))
@@ -101,7 +103,7 @@ def getDraw(dim, eligibleIndices, maxIndex, history):
     eIndex = deepcopy(eligibleIndices)
 
     # print(len(eIndex[0]))
-
+    #np.random.seed(42)
     point = [0] * dim
     draws = 0
     rejected = 0
@@ -109,15 +111,15 @@ def getDraw(dim, eligibleIndices, maxIndex, history):
     while True:
         if history == []:
             # Initial random draw
+
             point = [np.random.randint(0, maxIndex) for x in point]
             history.append(point)
-            # print(len(history))
             break
         elif history != []:
             # Limited draw by limiting sample-able indices
+
             point, eIndex = getLimitedDraw(dim, eIndex, history)
             history.append(point)
-            # print(len(history))
             break
 
             '''      
@@ -200,30 +202,22 @@ def sample(dim, numSamples, ratio):
         tries = 0
         while True:
             randUniform = np.array(convertToRandomCDF(dim, history, h))
-            #randStandardNorm = CDFtoNorm(randUniform)
-            tries += 1
 
-            #wtf(randUniform, 'utemp.csv')
-            #wtf(randStandardNorm, 'ntemp.csv')
+            tries += 1
 
             print(randUniform)
 
-
-            #cols = range(0, dim)
-            #randUniform = np.genfromtxt('utemp.csv', delimiter=',', usecols=cols)
-            #randStandardNorm = np.genfromtxt('ntemp.csv', delimiter=',', usecols=cols)
-
             uninnd = nnd(randUniform)
-            #normnnd = nnd(randStandardNorm)
+
             sampleMin = np.nanmin(uninnd)
-            #sampleMinNorm = np.nanmin(normnnd)
-            #print(sampleMin, sampleMinNorm, ratio * minRadius)
+
             print(sampleMin, ratio * minRadius)
 
             if tries == 3:
                 break
             if sampleMin > ratio * minRadius: #and sampleMinNorm > ratio * minRadius:
                 break
+
         if sampleMin > ratio * minRadius: #and sampleMinNorm > ratio * minRadius:
             break
 
@@ -278,17 +272,17 @@ if __name__ == "__main__":
     try:
         dim = int(sys.argv[1])
     except:
-        dim = 11
+        dim = 2
 
     try:
         numSamples = int(sys.argv[2])
     except:
-        numSamples = 1000
+        numSamples = 20
 
     try:
         minRatio = float(sys.argv[3])
     except:
-        minRatio = 1.0
+        minRatio = 1.5
 
     # Get standard normal and standard uniform samples
     uni = sample(dim, numSamples, minRatio)
@@ -310,4 +304,5 @@ if __name__ == "__main__":
         plt.xlim(0, 1)
         plt.ylim(0, 1)
         plt.savefig("LHS_2D_example")
+        plt.show()
         plt.clf()
