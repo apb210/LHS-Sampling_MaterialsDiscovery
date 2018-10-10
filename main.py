@@ -46,6 +46,8 @@ def main():
     # Select Candidates that satisfy the constraints
     TrueList = uni[TFlist]
 
+    print("No. of New Candidates Generated from" + n_results + "samples: " + len(TrueList))
+
 
     # Write to the specified filename
     outputfile = sys.argv[2]
