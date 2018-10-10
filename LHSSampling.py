@@ -221,10 +221,7 @@ def sample(dim, numSamples, ratio):
         if sampleMin > ratio * minRadius: #and sampleMinNorm > ratio * minRadius:
             break
 
-    #os.remove(os.getcwd() + '/utemp.csv')
-#    os.remove(os.getcwd() + '/ntemp.csv')
-
-    return randUniform#, randStandardNorm
+    return randUniform
 
 
 def nnd(a):

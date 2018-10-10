@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 def main():
-    inputfile = "C:\\Users\\usaaxb85\\Desktop\\citrine-challenge\\mixture.txt" #sys.argv[1]
+    inputfile = "C:\\Users\\Apratim\\Desktop\\citrine-challenge\\formulation.txt" #sys.argv[1]
 
 
 
@@ -18,7 +18,7 @@ def main():
     print(instance.get_ndim())
     print(instance.exprs[0])
 
-    uni = sample(instance.get_ndim(), 1000, 1.0)
+    uni = sample(instance.get_ndim(), 1100, 1.0)
     print(type(uni))
     print(uni)
     np.savetxt('StandardUniform.csv', uni, delimiter=',')
@@ -29,16 +29,23 @@ def main():
     ax = fig.add_subplot(111)
     cax = ax.matshow(correlations, vmin=-1, vmax=1)
     fig.colorbar(cax)
-    # ticks = numpy.arange(0, 9, 1)
-    # ax.set_xticks(ticks)
-    # ax.set_yticks(ticks)
-    # ax.set_xticklabels(names)
-    # ax.set_yticklabels(names)
+    ticks = np.arange(0, 9, 1)
+    ax.set_xticks(ticks)
+    ax.set_yticks(ticks)
     plt.show()
 
 
 
-    TFlist = np.array(np.apply_along_axis(instance.apply,1,uni))
+    TFlist = np.where(np.apply_along_axis(instance.apply,1,uni))
+    TrueList = uni[TFlist]
+    print(TrueList)
+    outputfile = "output.csv"
+    np.savetxt(outputfile, TrueList, delimiter=" ")
+    # readdata = np.genfromtxt(outputfile, delimiter=" ")
+    # print(readdata)
+
+
+
     print(TFlist)
     np.savetxt('TFList.csv',TFlist,delimiter=" ")
 
