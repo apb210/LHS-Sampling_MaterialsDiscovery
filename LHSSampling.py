@@ -1,4 +1,4 @@
-# Script for generating standard uniform/standard normal Latin-Hypercube samples
+# Script for generating standard uniform Latin-Hypercube samples
 # Parameter space is mapped to an array index space using integer truncation
 # Once array space is filled, a random value is generated within each cell
 # Array space is filled using strata index exclusion
@@ -34,8 +34,7 @@ import matplotlib.pyplot as plt
 import random, sys, os
 from copy import deepcopy
 import scipy.stats as st
-# np.random.seed(5)
-# random.seed(5)
+
 
 def getIndex(val, h, minVal=0.0, maxVal=1.0):
     minIndex = int(float(minVal / h))
@@ -60,9 +59,6 @@ def getFloatVal(index, h, minVal=0.0, maxVal=1.0):
 
 
 def initializeSpace(dim, numStrata, minVal=0.0, maxVal=1.0, debug='False'):
-    # dimList = []
-    # for i in range(0, dim):
-    #     dimList.append(numStrata)
 
     h = float((maxVal - minVal) / (numStrata))
 
@@ -102,8 +98,6 @@ def getLimitedDraw(dim, eligibleIndices, history):
 def getDraw(dim, eligibleIndices, maxIndex, history):
     eIndex = deepcopy(eligibleIndices)
 
-    # print(len(eIndex[0]))
-    #np.random.seed(42)
     point = [0] * dim
     draws = 0
     rejected = 0
@@ -121,24 +115,6 @@ def getDraw(dim, eligibleIndices, maxIndex, history):
             point, eIndex = getLimitedDraw(dim, eIndex, history)
             history.append(point)
             break
-
-            '''      
-            #iterate over each index, compare to history
-            for ent in history:
-                for i in range(0,dim):
-                    if point[i] == ent[i]:
-                        invalid.append("True")
-                    else:
-                        invalid.append("False")
-
-            if "True" in invalid:
-                draws += 1
-                rejected += 1
-            else:
-                draws += 1
-                history.append(point)
-                break
-           '''
 
     return list(point), history, eIndex
 
@@ -170,60 +146,6 @@ def CDFtoNorm(CDF):
 
     return CDF
 
-
-def wtf(data, filename):
-    f = open(filename, 'w')
-    for ent in data:
-        for thing in ent:
-            f.write(str(thing) + ',')
-        f.write('\n')
-    f.close()
-
-
-def sample(dim, numSamples, ratio):
-    numStrata = numSamples
-
-    # Try getting different random points in the array space
-    #   to satisfy nearest-neighbor constraint
-    # In 3 tries, get another LH sample and go again
-    sampleNum = 0
-    while True:
-        history = []
-
-        h, maxIndex = initializeSpace(dim, numStrata)
-        eIndices = buildList(dim, numStrata)
-        # Maximum radius within a single cell
-        minRadius = h * np.sqrt(dim)
-
-        for i in range(0, numSamples):
-            point, history, eIndices = getDraw(dim, eIndices, maxIndex, history)
-        sampleNum += 1
-        print("Sampling Latin-Hypercube array space (%s)" % (sampleNum))
-        tries = 0
-        while True:
-            randUniform = np.array(convertToRandomCDF(dim, history, h))
-
-            tries += 1
-
-            print(randUniform)
-
-            uninnd = nnd(randUniform)
-
-            sampleMin = np.nanmin(uninnd)
-
-            print(sampleMin, ratio * minRadius)
-
-            if tries == 3:
-                break
-            if sampleMin > ratio * minRadius: #and sampleMinNorm > ratio * minRadius:
-                break
-
-        if sampleMin > ratio * minRadius: #and sampleMinNorm > ratio * minRadius:
-            break
-
-    return randUniform
-
-
 def nnd(a):
     # For each sample, get the nearest neighbor w.r.t. each variable
     b = np.zeros((a.shape[0], a.shape[0]), dtype=float)
@@ -239,6 +161,58 @@ def radius(v):
     a = np.nansum(v * v)
     return np.sqrt(a)
 
+def sample(dim, numSamples, ratio):
+    numStrata = numSamples
+
+    # Try getting different random points in the array space
+    #   to satisfy nearest-neighbor constraint
+    # In 3 tries, get another LH sample and go again
+    sampleNum = 0
+    while True:
+        history = []
+
+        # Initialize the space
+        h, maxIndex = initializeSpace(dim, numStrata)
+        eIndices = buildList(dim, numStrata)
+        # Maximum radius within a single cell
+        minRadius = h * np.sqrt(dim)
+
+        for i in range(0, numSamples):
+            point, history, eIndices = getDraw(dim, eIndices, maxIndex, history)
+        sampleNum += 1
+        print("Sampling Latin-Hypercube array space (%s)" % (sampleNum))
+        tries = 0
+        while True:
+
+            randUniform = np.array(convertToRandomCDF(dim, history, h))
+            tries += 1
+            #print(randUniform)
+
+            # Perform Nearest Neighbor search
+            uninnd = nnd(randUniform)
+
+            # Find the minimum value of the nearest neighbor
+            sampleMin = np.nanmin(uninnd)
+
+
+            print(sampleMin, ratio * minRadius)
+
+
+            # Check convergence
+            if tries == 3:
+                break
+            if sampleMin > ratio * minRadius:
+                break
+
+        if sampleMin > ratio * minRadius:
+            break
+
+    return randUniform
+
+
+'''
+
+Uncomment for diagnosing the LHS Sampling algorithm
 
 def help():
     # Displays help in terminal
@@ -279,7 +253,7 @@ if __name__ == "__main__":
     try:
         minRatio = float(sys.argv[3])
     except:
-        minRatio = 1.5
+        minRatio = 1.0
 
     # Get standard normal and standard uniform samples
     uni = sample(dim, numSamples, minRatio)
@@ -303,3 +277,5 @@ if __name__ == "__main__":
         plt.savefig("LHS_2D_example")
         plt.show()
         plt.clf()
+
+'''
