@@ -1,4 +1,27 @@
+"""
+This program generates Uniformly distributed random samples
+in the [0,1] space using Lattice Hypercube Sampling.
+Each sample is checked to satisfy non-linear constraints.
+The candidates which satisfy the constraints are the new candidates
+that are put into a specified output file.
 
+  Usage:
+            main.py <input_file> <output_file> <n_results>
+
+        Where:
+            input_file contains the number of dimensions, and constraints.
+            output_file is the name of the file to be generated
+            n_results number of samples to be generated.
+
+
+    This program uses numpy arrays.
+    For diagnostic purposes, the user may want to
+    plot pairplots.
+
+    Plotting of pair plots require Pandas and Seaborn libraries be installed in the Stack.
+
+
+"""
 
 import sys
 from constraints import *
@@ -46,7 +69,7 @@ def main():
     # Select Candidates that satisfy the constraints
     TrueList = uni[TFlist]
 
-    print("No. of New Candidates Generated from ",n_results," samples: " + len(TrueList))
+    print("No. of New Candidates Generated from ",str(n_results)," samples: " + str(len(TrueList)))
 
 
     # Write to the specified filename
