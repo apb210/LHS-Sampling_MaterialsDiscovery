@@ -1,9 +1,15 @@
 """
-This program generates Uniformly distributed random samples
-in the [0,1] space using Lattice Hypercube Sampling.
-Each sample is checked to satisfy non-linear constraints.
-The candidates which satisfy the constraints are the new candidates
-that are put into a specified output file.
+This program generates a specified number of candidates in Multidimensional space
+using LHS given a set of constraints and one initial valid candidate.
+
+The program uses LHS initially. If it is unable to generate valid candidates,
+it switches to a Random Walk Sampling methodology initialized from the
+example provided.
+
+The program requires pyDOE which can be installed using
+
+pip install --upgrade pyDOE o
+
 
   Usage:
             main.py <input_file> <output_file> <n_results>
@@ -25,12 +31,15 @@ that are put into a specified output file.
 
 import sys
 from constraints import *
-from LHSSampling import *
 import seaborn as sns
+from pyDOE import *
 
 import matplotlib.pyplot as plt
 
 import pandas as pd
+
+
+
 
 def main():
 
@@ -46,37 +55,96 @@ def main():
     instance = Constraint(inputfile)
 
     # Perform LHS sampling
-    uni = sample(instance.get_ndim(), n_results, 1.0)
+
+    Candidates = np.array(instance.get_example())
+    NSpace = instance.get_ndim()
+    nTrials = 0
+    nSamples = 0
+
+    # Modify nFreq to specify when to stop performing LHS and switch to Random Walk
+    nFreq = 50
+
+    print("Sampling...")
+    while (nSamples < n_results):
+
+        #Perform LHS sampling in the N dimensional space and generate 100,000 samples.
+        Sample = lhs(instance.get_ndim(), samples=100000)
+
+
+        # Generate Pair Plots for diagnostics
+        '''
+        
+        Generate Pair plots to check sampling
+        
+        np.savetxt('StandardUniform.csv', Sample, delimiter=',')
+        header = list(range(instance.get_ndim()))
+        df = pd.read_csv('StandardUniform.csv', delimiter=',', names=header)
+        sns_plot = sns.pairplot(df)
+        sns_plot.savefig("hello"+".png")
+        '''
+
+        # Apply the constraints to all the samples generated.
+        TFList = np.apply_along_axis(instance.apply,1,Sample)
+
+        # Select candidates which satisfy the constraints (Trues in the TFList)
+        TrueList = Sample[TFList]
+
+        if (len(TrueList)>0):
+
+            #Check for duplicates
+            NewCandidates = np.array([i for i in TrueList if i not in Candidates])
+
+            #Append unique candidates to the Master CandidateList
+            Candidates = np.vstack((Candidates, NewCandidates))
+
+
+            nSamples = nSamples + len(NewCandidates)
 
 
 
-    # Generate Pair Plots for diagnostics
-    '''
-    Generate Pair Plots
-    
-    # np.savetxt('StandardUniform.csv', uni, delimiter=',')
-    # header = list(range(instance.get_ndim()))
-    # df = pd.read_csv('StandardUniform.csv', delimiter=',', names=header)
-    # sns_plot = sns.pairplot(df)
-    # sns_plot.savefig(examplefile+".png")
-  
-    
-    '''
+        nTrials = nTrials + 1
+        print("No. of Trial: ", nTrials)
 
-    # Check if the candidates satisfy the constraints or not
-    TFlist = np.where(np.apply_along_axis(instance.apply,1,uni))
 
-    # Select Candidates that satisfy the constraints
-    TrueList = uni[TFlist]
+        # If after a specified number of trials, the number of candidates generated
+        # is less than 50% of the specified number then switch to Random Walk
+        if (nTrials == nFreq):
+            if (nSamples < 0.5 * nFreq):
+                print("Difficult to Sample by Lattice Hypercube Sampling. Performing Random Walk")
+                Candidates = RandomWalk(instance, Candidates, n_results)
+                break
 
-    print("No. of New Candidates Generated from ",str(n_results)," samples: " + str(len(TrueList)))
+
+
+
+    # Select 1000 valid candidates.
+    Candidates = (Candidates[:1000,:])
+    print (len(Candidates))
 
 
     # Write to the specified filename
-    outputfile = sys.argv[2]
-    np.savetxt(outputfile, TrueList, delimiter=" ")
+    np.savetxt(outputfile, Candidates, delimiter=" ")
+
+def generate(Vector):
+    rand = lambda x: x + np.random.uniform(0 ,x)
+    new = np.vectorize(rand)
+    return new(Vector)
 
 
+def RandomWalk(instance, Candidates, n_results):
+    example = np.array(instance.get_example())
+    nSamples = 0
+    while (nSamples < n_results):
+        # print (example)
+        Sample = np.array(generate(example))
+
+        print(instance.apply(Sample))
+        if (instance.apply(Sample) == True):
+            Candidates = np.vstack((Candidates,Sample))
+            nSamples = nSamples + 1
+            print(nSamples)
+
+    return (Candidates)
 
 
 if __name__ == "__main__":
